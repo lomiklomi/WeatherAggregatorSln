@@ -16,17 +16,18 @@ namespace WeatherAggregator.Controllers
 	[Route("/api/[controller]")]
 	public class WeatherController : ControllerBase
 	{
-		string APIKey = "acd39150654a20a2175354a387cb163c";
-		string APIWeatherKey = "41b2b2d407da44b4869201200230811";
-		string APITomorrowKey = "1Z4rivuCVVyKsRoGsXXGAtERoLP0Jt3d";
-
 		[HttpGet("/openWeatherApi/{name}")]
-		[ServiceFilter(typeof(ApiKeyAuthFilter))]
+		// [ServiceFilter(typeof(ApiKeyAuthFilter))]
 		public WeatherInfo.Root? GetOpenWeather(string name)
 		{
+			var config = new ConfigurationBuilder()
+				.AddUserSecrets<Program>()
+				.Build();
+			string apikey = config["apikey"];
+			
 			using (System.Net.WebClient web = new System.Net.WebClient())
 			{
-				string url = string.Format("https://api.openweathermap.org/data/2.5/weather?q={0}&appid={1}", name, APIKey);
+				string url = string.Format("https://api.openweathermap.org/data/2.5/weather?q={0}&appid={1}", name, apikey);
 				var json = web.DownloadString(url);
 				WeatherInfo.Root? info = JsonConvert.DeserializeObject<WeatherInfo.Root>(json);
 				return info;
@@ -34,11 +35,16 @@ namespace WeatherAggregator.Controllers
 		}
 
 		[HttpGet("/WeatherApi/{name}")]
+		// [ServiceFilter(typeof(WeatherApiKeyAuthFilter))]
 		public Weather.WeatherRoot? GetWeather(string name)
 		{
+			var config = new ConfigurationBuilder()
+				.AddUserSecrets<Program>()
+				.Build();
+			string apikey = config["weatherApiKey"];
 			using (System.Net.WebClient web = new System.Net.WebClient())
 			{
-				string url = string.Format("http://api.weatherapi.com/v1/current.json?key={0}&q={1}&aqi=no", APIWeatherKey, name);
+				string url = string.Format("http://api.weatherapi.com/v1/current.json?key={0}&q={1}&aqi=no", apikey, name);
 				var json = web.DownloadString(url);
 				Weather.WeatherRoot? info = JsonConvert.DeserializeObject<Weather.WeatherRoot>(json);
 				return info;
@@ -46,11 +52,16 @@ namespace WeatherAggregator.Controllers
 		}
 
 		[HttpGet("/TomorrowApi/{name}")]
+		// [ServiceFilter(typeof(TomorrowApiKeyAuthFilter))]
 		public TomorrowWeather.TomorrowRoot? GetTomorrowsWeather(string name)
 		{
+			var config = new ConfigurationBuilder()
+				.AddUserSecrets<Program>()
+				.Build();
+			string apikey = config["TomorrowApiKey"];
 			using (System.Net.WebClient web = new System.Net.WebClient())
 			{
-				string url = string.Format("https://api.tomorrow.io/v4/timelines?location={0}&fields=temperature&timesteps=1h&units=metric&apikey={1}", name, APITomorrowKey);
+				string url = string.Format("https://api.tomorrow.io/v4/timelines?location={0}&fields=temperature&timesteps=1h&units=metric&apikey={1}", name, apikey);
 				var json = web.DownloadString(url);
 				TomorrowWeather.TomorrowRoot? info = JsonConvert.DeserializeObject<TomorrowWeather.TomorrowRoot>(json);
 				return info;
