@@ -3,8 +3,11 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.OpenApi.Models;
 using Microsoft.EntityFrameworkCore;
 using WeatherAggregator.Authentication;
+using Microsoft.Extensions.Logging.Console;
 
 var builder = WebApplication.CreateBuilder(args);
+builder.Logging.ClearProviders();
+builder.Logging.AddConsole();
 
 builder.Services.AddControllers(/*x => x.Filters.Add<ApiKeyAuthFilter>()*/).AddNewtonsoftJson().
 AddXmlDataContractSerializerFormatters();
@@ -52,6 +55,8 @@ builder.Services.AddSwaggerGen(c => {
 
 var app = builder.Build();
 
+app.Logger.LogInformation("Adding Routes");
+
 app.MapControllers();
 
 app.UseSwagger();
@@ -60,8 +65,15 @@ app.UseSwaggerUI(options => {
 	options.SwaggerEndpoint("/swagger/v1/swagger.json", "Weather");
 });
 
+
 // app.UseMiddleware<ApiKeyAuthMiddleware>();
 
 app.UseAuthorization();
+
+app.MapGet("/Test", async (ILogger<Program> logger, HttpResponse response) =>
+{
+	logger.LogInformation("Testing logging in Program.cs");
+	await response.WriteAsync("Testing");
+});
 
 app.Run();
